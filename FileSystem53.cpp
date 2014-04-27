@@ -40,17 +40,20 @@ FileSystem53::FileSystem53(int l, int b, string storage)
 // Open File Table(OFT).
 void FileSystem53::OpenFileTable()
 {
+	/*
 	int FILE_SIZE = FILE_SIZE_FIELD + DESCR_SIZE + ARRAY_SIZE;
 	oft = new char*[MAX_OPEN_FILE];
 	for (int i = 0; i < MAX_OPEN_FILE; i++)
 	{
 		oft[i] = new char[FILE_SIZE];
 	}
+	*/
 }
 
 // Allocate open file table
 int FileSystem53::find_oft()
 {
+	/*
 	for (int i = 0; i < MAX_OPEN_FILE; i++)
 	{
 		if ( oft[i][0] == 0 )
@@ -59,6 +62,7 @@ int FileSystem53::find_oft()
 
 	// -1000 is error flag
 	return -1000;
+	*/
 }
 
 //Deallocate
@@ -224,6 +228,9 @@ int FileSystem53::create(string symbolic_file_name)
  *    Return -1 for error.
  */
 int FileSystem53::open_desc(int desc_no)
+{
+
+}
 
 
 /* Open file with file name function:
@@ -368,7 +375,9 @@ void FileSystem53::diskdump(int start, int size)
 	// initialize a clean block
 	char* clean = new char[B];
 	for (int i = 0; i < B; i++)
-	{ clean[i] = '0'; }
+	{
+		clean[i] = '0'; 
+	}
 
 	// overwrite to the disk
 	for (int i = start; i < start+size-1; i++)
