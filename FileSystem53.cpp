@@ -74,7 +74,9 @@ void FileSystem53::deallocate_oft(int index)
  *   none
  */
 void FileSystem53::format()
-{}
+{
+
+}
 
 
 /* Read descriptor
@@ -222,7 +224,6 @@ int FileSystem53::create(string symbolic_file_name)
  *    Return -1 for error.
  */
 int FileSystem53::open_desc(int desc_no)
-{}
 
 
 /* Open file with file name function:
