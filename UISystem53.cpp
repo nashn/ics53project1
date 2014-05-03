@@ -170,50 +170,99 @@ void fuck()
 
 void create_command(string name)
 {
-	cout << "Building..." << endl;
+	int res = filesystem->create(name);
+	if ( res == -1 )
+		cout << "Error@UISystem53.create_command(): no space in disk" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.create_command(): duplicate filename" << endl;
+	else
+		cout << "Create file successfully!" << endl;
 }
 
 void delete_command(string name)
 {
-	cout << "Building..." << endl;
+	int res = filesystem->deleteFile(name);
+	if ( res == -1 )
+		cout << "Error@UISystem53.delete_command(): No such file" << endl;
+	else
+		cout << "Delete file successfully!" << endl;
 }
 
 void open_command(string name)
 {
-	cout << "Building..." << endl;	
+	int res = filesystem->open(name);
+	if ( res == -1 )
+		cout << "Error@UISystem53.open_command(): file not found" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.open_command(): no empty entry" << endl;
+	else
+		cout << "Open file successfully!" << endl;
 }
 
 void close_command(int index)
 {
+	filesystem->close(index);
 	cout << "Building..." << endl;
 }
 
 void read_command(int index, int count)
 {
-	cout << "Building..." << endl;
+	char *temp = new char[count];
+	int res = filesystem->read(index, temp ,count);
+	
+	if ( res == -1 )
+		cout << "Error@UISystem53.read_command(): can't get proper file descriptor" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.read_command(): current position==file size" << endl;
+	else {
+		cout << "read data successfully!" << endl;
+		
+		for (int i = 0 ; i< count; i++)
+		{
+			cout << temp[i] << " ";
+		}
+		cout << endl;
+	}
 }
 
 void write_command(int num, char symbol, int count)
 {
-	cout << "Building..." << endl;
+	int res = filesystem->write(num, symbol, count);
+	if ( res == -1 )
+		cout << "Error@UISystem53.write_command(): File hasn't been open" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.write_command(): Maximum file size reached (not implemented.)" << endl;
+	else
+		cout << "Write file successfully!" << endl;
 }
 
 void seek_command(int index, int position)
 {
-	cout << "Building..." << endl;
-}
+	int res = filesystem->lseek(index, position);
+	
+	if ( res == -1 )
+		cout << "Error@UISystem53.seek_command(): No such file" << endl;
+	else {
+		// print out result?
+		cout << "Seek file successfully!" << endl;
+	}
+	
 
 void directory_command()
 {
+	filesystem->directory();
 	cout << "Building..." << endl;
 }
 
 void initialize_command(int disk_cont)
 {
+//	filesystem->restore();
+	
 	cout << "Building..." << endl;
 }
 
 void save_command(int disk_cont)
 {
+//	filesystem->save();
 	cout << "Building..." << endl;
 }
