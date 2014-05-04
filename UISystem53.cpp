@@ -17,8 +17,6 @@
 
 using namespace std;
 
-// just for fun
-void fuck();
 
 // system helper functions:
 void print_info();
@@ -159,13 +157,7 @@ void print_commands()
 
 /////////////////////////////////////////////////////////////////////////////
 // just for fun
-void fuck()
-{
-	cout << "Fucking the system..." << endl;
-	system("cat ./IOSystem53.txt");
-	system("osascript -e \'say \"your whole system has been hacked he he he ho ho ho fa lah lah lah lah lah lah fa lah full hoo blow it\" using \"Cellos\"\'\n");
-	cout << "System is fucked...\nDisk data leaks..." << endl;
-}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void create_command(string name)
