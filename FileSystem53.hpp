@@ -3,10 +3,11 @@
 // Authors     : She Nie
 //				 Yuhong Li
 //				 Qixiang Zhang
-// Version     : Ver 1.2
-// Copyright   : Team project for ICS53, allright reserved.
-// Description : First Project - Part 1
-// History     : 
+// Version     : Ver 1.0
+// Copyright   : Team project for ICS53, all rights reserved.
+// Description : First Project - Part 2
+// History     : 04/22/2014: Start working
+//				 05/05/2014: Ver 1.0 finished, start debugging	
 //
 //============================================================================
 
@@ -45,18 +46,23 @@ class FileSystem53 {
 
 
 
-
 	// Filesystem format parameters:
-	int FILE_SIZE_FIELD = 1;     // Size of file size field in bytes. Maximum file size allowed in this file system is 192.
-	int ARRAY_SIZE = 3;          // The length of array of disk block numbers that hold the file contents.
-	int DESCR_SIZE = FILE_SIZE_FIELD+ARRAY_SIZE;
-	int MAX_FILE_NO = 14;        // Maximum number of files which can be stored by this file system.
-	int MAX_BLOCK_NO = 64;       // Maximum number of blocks which can be supported by this file system.
-	int MAX_BLOCK_NO_DIV8 = MAX_BLOCK_NO/8;
-	int MAX_FILE_NAME_LEN = 32;  // Maximum size of file name in byte.
-	int MAX_OPEN_FILE = 3;       // Maximum number of files to open at the same time.
-	int FILEIO_BUFFER_SIZE = 64; // Size of file io bufer
-	int _EOF= -1;       // End-of-File
+	const static int FILE_SIZE_FIELD = 1;     // Size of file size field in bytes. Maximum file size allowed in this file system is 192.
+	const static int ARRAY_SIZE = 3;          // The length of array of disk block numbers that hold the file contents.
+	const static int DESCR_SIZE = FILE_SIZE_FIELD+ARRAY_SIZE;
+	const static int MAX_FILE_NO = 14;        // Maximum number of files which can be stored by this file system.
+	const static int MAX_BLOCK_NO = 64;       // Maximum number of blocks which can be supported by this file system.
+	const static int MAX_BLOCK_NO_DIV8 = MAX_BLOCK_NO/8;
+	const static int MAX_FILE_NAME_LEN = 32;  // Maximum size of file name in byte.
+	const static int MAX_OPEN_FILE = 3;       // Maximum number of files to open at the same time.
+	const static int FILEIO_BUFFER_SIZE = 64; // Size of file io bufer
+	const static int _EOF= -1;       // End-of-File
+
+
+	// Open file table parameter:
+	const static int HEADER_SIZE = 1 + DESCR_SIZE + 1;
+	const static int OFT_ENTRY_SIZE = HEADER_SIZE + 3 * 64;
+	const static int OFT_CURRENT_POSITION_INDEX = 5;
 
 public:
 	// Constructor of this File system.

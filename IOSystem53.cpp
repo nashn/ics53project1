@@ -90,7 +90,7 @@ void IOSystem53::save()
 {
 	// require some file operations
 	ofstream savefile;
-	savefile.open ("IOSystem53.txt");
+	savefile.open ("IOSystem53disk.txt");
 	if (savefile.is_open())
 	{
 		for (int i = 0; i < MAX_BLOCK_NUM; ++i)
