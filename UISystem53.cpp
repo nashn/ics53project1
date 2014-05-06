@@ -89,9 +89,9 @@ int main(int argc, char const *argv[])
 			cout << "All data is saved...\nSystem close" << endl; 
 			break; 
 		}
-		else if ( command == "fuck" )
+		else if ( command == "hack" )
 		{
-			fuck();
+			hack();
 		}
 		else if ( command == "cr" )
 		{
