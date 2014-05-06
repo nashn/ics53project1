@@ -3,10 +3,11 @@
 // Authors     : She Nie
 //				 Yuhong Li
 //				 Qixiang Zhang
-// Version     : Ver 1.0
+// Version     : Ver 1.2
 // Copyright   : Team project for ICS53, all rights reserved.
 // Description : First Project - Final
 // History     : 04/25/2014: Finish System Framework
+//				 05/05/2014: Upgrade to Ver 1.2
 //
 //============================================================================
 
@@ -17,8 +18,11 @@
 
 using namespace std;
 
+// global parameter
+FileSystem53* filesystem;
+
 // just for fun
-void fuck();
+void hack();
 
 // system helper functions:
 void print_info();
@@ -27,9 +31,9 @@ void parse_input_line(string& line);
 
 
 // command functions by using File System
-void create_command(string name);
-void delete_command(string name);
-void open_command(string name);
+void create_command(string& name);
+void delete_command(string& name);
+void open_command(string& name);
 void close_command(int index);
 void read_command(int index, int count);
 void write_command(int num, char symbol, int count);
@@ -38,13 +42,15 @@ void seek_command(int index, int position);
 void directory_command();
 void initialize_command(int disk_cont);
 void save_command(int disk_cont);
+void restore_command(int disk_cont);
 
 
 int main(int argc, char const *argv[])
 {
 	// system variables:
-	FileSystem53* filesystem = new FileSystem53(64, 64, "test");
+	filesystem = new FileSystem53(64, 64, "test");
 	string line = "";
+
 
 	// command variables
 	string command = "";
@@ -55,21 +61,31 @@ int main(int argc, char const *argv[])
 	char symbol = '0';
 	int position = 0;
 	int disk_cont = 0;
-	
+
+	// using a parameter array instead
+	string parameter[4];
+
 	cout << "Initializing UISystem53..." << endl;
 	print_info();
 	print_commands();
 
 	while (1) 
 	{
-		cout << "Enter a Command > ";		
-		cin >> line;
+		cout << "Enter Command > ";		
+		getline(cin, line);
+		//cout << "line: " << line << endl;
 		istringstream tmp(line);
-		tmp >> command;
+
+		for (int i = 0; i < 4; i++)
+			tmp >> parameter[i];
+
+		command = parameter[0];
+		//cout << "Command: " << command << endl;
 
 		// terminate the command shell
 		if ( command == "quit" || command == "exit" ) 
 		{
+			filesystem->save();
 			cout << "All data is saved...\nSystem close" << endl; 
 			break; 
 		}
@@ -79,33 +95,54 @@ int main(int argc, char const *argv[])
 		}
 		else if ( command == "cr" )
 		{
-			tmp >> name;
+			//tmp >> name;
+			//cout << "Filename@cr: " << name << endl;
+			name = parameter[1];
 			create_command(name);
 		}
 		else if ( command == "de" )
 		{
-			tmp >> name;
+			//tmp >> name;
+			name = parameter[1];
 			delete_command(name);		
 		}
 		else if ( command == "op" )
 		{
-			tmp >> name;
+			//tmp >> name;
+			name = parameter[1];
 			open_command(name);
 		}
 		else if ( command == "cl" )
 		{
+			istringstream t(parameter[1]);
+			t >> index;
 			close_command(index);
 		}
 		else if ( command == "rd" )
 		{
+			istringstream t1(parameter[1]);
+			t1 >> index;
+			istringstream t2(parameter[2]);
+			t2 >> count;
 			read_command(index, count);
 		}
 		else if ( command == "wr" )
 		{
+			istringstream t1(parameter[1]);
+			t1 >> num;
+			istringstream t2(parameter[2]);
+			t2 >> count;
+			istringstream t3(parameter[3]);
+			t3 >> count;
 			write_command(num, symbol, count);
 		}
 		else if ( command == "sk" )
 		{
+			istringstream t1(parameter[1]);
+			t1 >> index;
+			istringstream t2(parameter[2]);
+			t2 >> position;
+
 			seek_command(index, position);
 		}
 		else if ( command == "dr" )
@@ -114,10 +151,12 @@ int main(int argc, char const *argv[])
 		}
 		else if ( command == "in" )
 		{
+			//tmp >> disk_cont;
 			initialize_command(disk_cont);
 		}
 		else if ( command == "sv" )
 		{
+			//tmp >> disk_cont;
 			save_command(disk_cont);
 		}
 		else {
@@ -159,61 +198,128 @@ void print_commands()
 
 /////////////////////////////////////////////////////////////////////////////
 // just for fun
-void fuck()
+void hack()
 {
-	cout << "Fucking the system..." << endl;
+	cout << "Hacking the system..." << endl;
 	system("cat ./IOSystem53.txt");
-	system("osascript -e \'say \"your whole system has been hacked he he he ho ho ho fa lah lah lah lah lah lah fa lah full hoo blow it\" using \"Cellos\"\'\n");
-	cout << "System is fucked...\nDisk data leaks..." << endl;
+	cout << "System is hacked...\nDisk data leaks..." << endl;
 }
 /////////////////////////////////////////////////////////////////////////////
 
-void create_command(string name)
+void create_command(string& name)
 {
-	cout << "Building..." << endl;
+	//cout << "Filename: " << name << endl;
+	int res = filesystem->create(name);
+	if ( res == -1 )
+		cout << "Error@UISystem53.create_command(): no space in disk" << endl;
+	else if ( res == -2 ) {
+		cout << "Error@UISystem53.create_command(): duplicate filename" << endl;
+		cout << "error" << endl;
+	} else {
+		cout << "file " << name << " created" << endl;
+		//cout << "Create file successfully!" << endl;
+	}
 }
 
-void delete_command(string name)
+void delete_command(string& name)
 {
-	cout << "Building..." << endl;
+	int res = filesystem->deleteFile(name);
+	if ( res == -1 )
+		cout << "Error@UISystem53.delete_command(): No such file" << endl;
+	else {
+		cout << "file " << name << " deleted" << endl;
+		//cout << "Delete file successfully!" << endl;
+	}
 }
 
-void open_command(string name)
+void open_command(string& name)
 {
-	cout << "Building..." << endl;	
+	int res = filesystem->open(name);
+	if ( res == -1 )
+		cout << "Error@UISystem53.open_command(): file not found" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.open_command(): no empty entry" << endl;
+	else {
+		cout << "file " << name << " opened, index = " << res << endl;
+		//cout << "Open file successfully!" << endl;
+	}
 }
-
+// problem herer
 void close_command(int index)
 {
-	cout << "Building..." << endl;
+	filesystem->close(index);
+	//cout << "Building..." << endl;
 }
 
 void read_command(int index, int count)
 {
-	cout << "Building..." << endl;
+	char temp[count];
+	int res = filesystem->read(index, temp ,count);
+
+	if ( res == -1 )
+		cout << "Error@UISystem53.read_command(): can't get proper file descriptor" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.read_command(): current position==file size" << endl;
+	else {
+		//cout << "read data successfully!" << endl;
+		cout << res << " bytes read: ";
+
+		for (int i = 0 ; i< count; i++)
+		{
+			cout << temp[i] << "";
+		}
+		cout << endl;
+	}
 }
 
 void write_command(int num, char symbol, int count)
 {
-	cout << "Building..." << endl;
+	int res = filesystem->write(num, symbol, count);
+	if ( res == -1 )
+		cout << "Error@UISystem53.write_command(): File hasn't been open" << endl;
+	else if ( res == -2 )
+		cout << "Error@UISystem53.write_command(): Maximum file size reached (not implemented.)" << endl;
+	else {
+		//cout << "Write file successfully!" << endl;
+		cout << res << " bytes written ";
+	}
 }
 
 void seek_command(int index, int position)
 {
-	cout << "Building..." << endl;
+	int res = filesystem->lseek(index, position);
+
+	if ( res == -1 )
+		cout << "Error@UISystem53.seek_command(): No such file" << endl;
+	else {
+		//cout << "Seek file successfully!" << endl;
+		cout << "current position is " << res << endl;
+
+	}
 }
 
 void directory_command()
 {
-	cout << "Building..." << endl;
+	filesystem->directory();
+	//cout << "Building..." << endl;
 }
 
 void initialize_command(int disk_cont)
 {
-	cout << "Building..." << endl;
+	filesystem->restore();
+
+	//cout << "Building..." << endl;
+	cout << "disk Initialized" << endl;
 }
 
 void save_command(int disk_cont)
 {
-	cout << "Building..." << endl;
+//	filesystem->save();
+	cout << "disk saved" << endl;
+}
+
+void restore_command(int disk_cont)
+{
+//	filesystem->save();
+	cout << "disk restored" << endl;
 }
