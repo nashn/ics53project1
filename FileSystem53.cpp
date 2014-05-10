@@ -420,7 +420,7 @@ void FileSystem53::delete_dir(int index, int start_pos, int len)
 	if ( index < 0 || index > MAX_FILE_NO+1 ) 
 		cout << "Error@FileSystem53.delete_dir(): Index out of boundary" << endl;
 	
-	if ( start_pos > len || start_pos < 6 || start_pos > OFT_ENTRY_SIZE )
+	if ( start_pos < 6 || start_pos > (len+5) || start_pos >= OFT_ENTRY_SIZE )
 		cout << "Error@FileSystem53.delete_dir(): Position out of boundary" << endl;
 
 	for (int i = start_pos; i < start_pos + len; i++)
