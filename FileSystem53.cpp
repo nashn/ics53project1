@@ -285,7 +285,7 @@ int FileSystem53::find_empty_block()
  */
 int FileSystem53::fgetc(int index)
 {
-	if ( index < 0 || index > MAX_FILE_NO+1 ) {
+	if ( index < 0 || index > MAX_OPEN_FILE ) {
 		cout << "Error@FileSystem53.fgetc(): Index out of boundary" << endl;
 		return _EOF;
 	}
@@ -293,7 +293,7 @@ int FileSystem53::fgetc(int index)
 	// get the current cursor of the file buffer
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor > length || cursor < 6 || cursor > OFT_ENTRY_SIZE )
+	if ( cursor < 6 || cursor > (length + 5) || cursor >= OFT_ENTRY_SIZE )
 		return _EOF;
 
 	// increase the cursor
@@ -317,14 +317,14 @@ int FileSystem53::fgetc(int index)
 int FileSystem53::fputc(int c, int index)
 {
 	// the int c should be the ASCII code of the character c
-	if ( index < 0 || index > MAX_FILE_NO+1 ) {
+	if ( index < 0 || index > MAX_OPEN_FILE ) {
 		cout << "Error@FileSystem53.fputc(): Index out of boundary" << endl;
 		return -2;
 	}
 
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor > length || cursor < 6 || cursor > OFT_ENTRY_SIZE )
+	if ( cursor < 6 || cursor > (length + 5) || cursor >= OFT_ENTRY_SIZE )
 		return -2;
 
 	oft[index][cursor] = c;
@@ -353,7 +353,7 @@ int FileSystem53::fputc(int c, int index)
 bool FileSystem53::feof(int index)
 {
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
-	for (int i = cursor; i < oft[index][1]; i++) {
+	for (int i = cursor; i < oft[index][1]; i++) {     // checkhere: logic
 		if ( oft[index][i] == _EOF )
 			return true;
 	}
@@ -372,19 +372,19 @@ bool FileSystem53::feof(int index)
  */
 int FileSystem53::search_dir(int index, string symbolic_file_name)
 {
-	if ( index < 0 || index > MAX_FILE_NO+1 ) {
+	if ( index < 0 || index > MAX_OPEN_FILE ) {
 		cout << "Error@FileSystem53.search_dir(): Index out of boundary" << endl;
 		return -1;
 	}
 
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor > length || cursor < 6 || cursor > OFT_ENTRY_SIZE )
+	if ( cursor < 6 || cursor > (length + 5) || cursor >= OFT_ENTRY_SIZE )
 		return -1;
 
 	int res = -1;
 
-	while ( cursor < length)
+	while ( cursor < (length + 5))
 	{
 		// filename's length
 		cursor+=2;
