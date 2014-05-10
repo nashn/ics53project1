@@ -104,14 +104,22 @@ void FileSystem53::deallocate_oft(int index)
  */
 void FileSystem53::format()
 {
-	// intialize the bitmap at position 0
-	for (int i = 0; i < MAX_BLOCK_NO/8; i++)
+	// intialize the bytemap at position 0
+    /*   Note that since the first 7 blocks of ldisk are preserved
+     *     to store descriptors, names, etc., so that the
+     *     desc_table[0][0]~desc_table[0][6] are set to 1.
+     */
+	for (int i = 0; i < B; i++)
 	{
-		desc_table[0][i] = 1;
+        if ( i < 7 )
+            desc_table[0][i] = 1;
+        else
+            desc_table[0][i] = 0;
 	}
 
 
 	// initialize first 14 blocks with zeros
+    //   a.k.a. initializing desc_table[0][1]~desc_table[0][14].
 	for (int i = 1; i < MAX_FILE_NO+1; i++)
 	{
 		for (int j = 0; j < DESCR_SIZE; j++)
@@ -130,7 +138,7 @@ void FileSystem53::format()
 
 	// load directory file to oft[0]
 	// oft availiable flag
-	oft[0][0] = 1;
+	oft[0][0] = 1;                 // << may cause problem
 	for (int i = 0; i < DESCR_SIZE; ++i)
 	{
 		oft[0][i+1] = directory_desc[i];
@@ -173,8 +181,7 @@ char* FileSystem53::read_descriptor(int no)
 
 /* Clear descriptor
  *   1. Clear descriptor entry
- *   2. Clear bitmap
- *   3. Write back to disk
+ *   2. Clear bytemap
  * Parameter(s):
  *    no: Descriptor number to clear
  * Return:
@@ -203,7 +210,7 @@ void FileSystem53::clear_descriptor(int no)
 
 /* Write descriptor
  *   1. Update descriptor entry
- *   2. Mark bitmap
+ *   2. Mark bytemap
  *   3. Write back to disk
  * Parameter(s):
  *    no: Descriptor number to write
@@ -245,7 +252,7 @@ int FileSystem53::find_empty_descriptor()
 
 
 /* Search for an unoccupied block.
- *   This returns the first unoccupied block in bitmap field.
+ *   This returns the first unoccupied block in bytemap field.
  *   Return value -1 means all blocks are occupied.
  * Parameter(s):
  *    none

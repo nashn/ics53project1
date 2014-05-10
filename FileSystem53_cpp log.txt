@@ -1,0 +1,9 @@
+FileSystem53.cpp editing log
+
+>> 05/10/2014 12:15pm
+  void FileSystem53::format() changed.
+    initialize desc_table[0][0~ 6] -> 1
+               desc_table[0][7~63] -> 0
+  * check the description in cpp.
+
+>>  
