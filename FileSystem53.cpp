@@ -59,7 +59,6 @@ void FileSystem53::OpenFileTable()
 		}
 	}
 
-
 }
 
 // Allocate open file table
@@ -583,7 +582,7 @@ int FileSystem53::open(string symbolic_file_name)
 				// write to oft buffer
 				for (int i = 0; i < B; ++i)
 				{
-					int tmp = fputc((int)block_buffer[i], 0);
+					int tmp = fputc((int)block_buffer[i], 0); // complicated?
 					if ( tmp == -1 )
 						break;
 				}
@@ -635,7 +634,7 @@ int FileSystem53::read(int index, char* mem_area, int count)
 
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor > length || cursor < 6 || cursor > OFT_ENTRY_SIZE ) {
+	if ( cursor < 6 || cursor > (length+5) || cursor >= OFT_ENTRY_SIZE ) {
 		cout << "Error@FileSystem53.read(): Cursor out of boundary" << endl;
 		return -2;
 	}
@@ -683,7 +682,7 @@ int FileSystem53::write(int index, char value, int count)
 	// previous design
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor > length || cursor < 6 || cursor > OFT_ENTRY_SIZE ) {
+	if ( cursor < 6 || cursor > (length+5) || cursor >= OFT_ENTRY_SIZE ) {
 		cout << "Error@FileSystem53.write(): Cursor out of boundary" << endl;
 		return -2;
 	}
