@@ -80,7 +80,7 @@ void FileSystem53::deallocate_oft(int index)
 {
 	if ( index == 0 )
 		cout << "Error@FileSystem53.deallocate_oft(): cannot deallocate directory file" << endl;
-	if ( index < 0 || index > MAX_OPEN_FILE + 1 )
+	if ( index < 0 || index > MAX_OPEN_FILE )
 		cout << "Error@FileSystem53.deallocate_oft(): Invalid oft index" << endl;
 	else 
 	{
@@ -191,7 +191,7 @@ void FileSystem53::clear_descriptor(int no)
 	if ( no == 0 )
 		cout << "Error@FileSystem53.clear_descriptor(): Invalid descriptor index" << endl;
 	
-	if ( no < 0 || no > MAX_FILE_NO+1 )
+	if ( no < 0 || no > MAX_FILE_NO )
 		cout << "Error@FileSystem53.clear_descriptor(): Descriptor index out of boundary" << endl;
 
 
@@ -222,7 +222,7 @@ void FileSystem53::write_descriptor(int no, char* desc)
 	if ( no == 0 )
 		cout << "Error@FileSystem53.write_descriptor(): Invalid descriptor index" << endl;
 
-	if ( no < 0 || no > MAX_FILE_NO+1 )
+	if ( no < 0 || no > MAX_FILE_NO )
 		cout << "Error@FileSystem53.write_descriptor(): Descriptor index out of boundary" << endl;
 
 	for (int i = 0; i < DESCR_SIZE; i++)
@@ -416,7 +416,7 @@ int FileSystem53::search_dir(int index, string symbolic_file_name)
  */
 void FileSystem53::delete_dir(int index, int start_pos, int len)
 {
-	if ( index < 0 || index > MAX_FILE_NO+1 ) 
+	if ( index < 0 || index > MAX_FILE_NO ) 
 		cout << "Error@FileSystem53.delete_dir(): Index out of boundary" << endl;
 	
 	if ( start_pos < 6 || start_pos > (len+5) || start_pos >= OFT_ENTRY_SIZE )
@@ -697,9 +697,10 @@ int FileSystem53::write(int index, char value, int count)
 			return -1;
 		}
 
-		int tmp = fputc((int)value, index);
-		if ( tmp == -2 )
-		{
+		int tmp = fputc((int)value, index); // according to the func description, value can be 
+		if ( tmp == -2 )					//  more than one char. --> check > LINE 658 <
+		{									// 	(solution guess: check if count > 1, if so, 
+											//    using index i.e. value[0], value[1]... )
 			cout << "Error@FileSystem53.write(): error in writing buffer" << endl;
 			return -1;
 		}
@@ -729,6 +730,9 @@ int FileSystem53::lseek(int index, int pos)
 		return -1;
 	}
 
+	if (pos >= OFT_ENTRY_SIZE) {
+		pos = OFT_ENTRY_SIZE-1;
+	}
 	oft[index][OFT_CURRENT_POSITION_INDEX] = pos;
 
 	return 0;

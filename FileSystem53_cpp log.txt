@@ -1,9 +1,61 @@
 FileSystem53.cpp editing log
 
 >> 05/10/2014 12:15pm
-  void FileSystem53::format() changed.
-    initialize desc_table[0][0~ 6] -> 1
-               desc_table[0][7~63] -> 0
-  * check the description in cpp.
+	void FileSystem53::format() changed.
+    	initialize desc_table[0][0~ 6] -> 1
+        	       desc_table[0][7~63] -> 0
+  	* check the description in cpp.
 
->>  
+
+>> 05/10/2014 4:16pm
+	fgetc(), fputc(), feof(), search_dir() changed.
+		boundary check.
+			 cursor < 6 || cursor > (length+5) || cursor >= OFT_ENTRY_SIZE
+			 				=>length+headers(len=5)
+
+
+>> 05/10/2014 4:20pm
+	delete_dir() changed.
+		boundary check.
+
+
+>> 05/10/2014 4:52pm
+	read(), write() changed.
+ 		boundary check.
+
+
+=============================================================================================
+
+
+>> 05/10/2014 10:31pm
+	write() question found:
+		char value may have more than one chars i.e. it might be one word,
+		 according to the count. 
+
+	Statement: waiting to change...
+	
+
+>> 05/10/2014 10:42pm
+	lseek() changed.
+		add an IF statement to check if pos is bigger than file size a.k.a.
+		 >=OFT_ENTRY_SIZE(which is 198). set it to the last position (197) if so.
+
+	Statement: Changed. waiting to confirm...
+
+
+>> 05/10/2014 10:49pm
+	deallocate_oft(), clear_descriptor(), write_descriptor(), delete_dir() changed.
+		boundary check.
+			1. deallocate_oft() 
+				"index > MAX_OPEN_FILE + 1" => "index > MAX_OPEN_FILE"
+				Reason: index cannot be 4, which is greater than MAX_OPEN_FILE( index > 3 ).
+
+			2. clear_descriptor(), write_descriptor() delete_dir()
+				"no < 0 || no > MAX_FILE_NO+1" => "no < 0 || no > MAX_FILE_NO"
+
+	Statement: Changed. waiting to confirm...
+
+
+>> 05/10/2014 10:49pm
+	last finished func: lseek()
+	next debuging func: close()
