@@ -19,7 +19,7 @@
 
 FileSystem53::FileSystem53(int l, int b, string storage)
 {
-	cout << "Initializing FileSystem53..." << endl;
+	//cout << "Initializing FileSystem53..." << endl;
 	// initialize IO
 	iosystem = new IOSystem53::IOSystem53(l, b);
 	
@@ -84,8 +84,9 @@ void FileSystem53::deallocate_oft(int index)
 {
 	//if ( index == 0 )
 	//	cout << "Error@FileSystem53.deallocate_oft(): cannot deallocate directory file" << endl;
-	if ( index < 0 || index > MAX_OPEN_FILE )
-		cout << "Error@FileSystem53.deallocate_oft(): Invalid oft index" << endl;
+	if ( index < 0 || index > MAX_OPEN_FILE ) {
+		//cout << "Error@FileSystem53.deallocate_oft(): Invalid oft index" << endl;
+	}
 	else 
 	{
 		delete [] oft[index];
@@ -470,12 +471,12 @@ int FileSystem53::create(string symbolic_file_name)
 {
 	int desc_index = find_empty_descriptor();
 	if ( desc_index == -1 ) {
-		cout << "Error@FileSystem53.create(): no empty descriptors left" << endl;
+		//cout << "Error@FileSystem53.create(): no empty descriptors left" << endl;
 		return -1;
 	}
 
 	if ( search_dir(0, symbolic_file_name) != -1 ) {
-		cout << "Error@FileSystem53.create(): filename exists" << endl;
+		//cout << "Error@FileSystem53.create(): filename exists" << endl;
 		return -2;
 	}
 
@@ -489,14 +490,14 @@ int FileSystem53::create(string symbolic_file_name)
 	//	return -1
 	int filename_length = symbolic_file_name.size();
 	if ( oft[0][1] + filename_length > 192 || filename_length > 10 ) {
-		cout << "Error@FileSystem53.create(): filename oversize" << endl;
+		//cout << "Error@FileSystem53.create(): filename oversize" << endl;
 		return -1;
 	}
 
 	// get new empty block for directory to store the content if needed..
 	int dir_block_index = find_empty_block();
 	if ( dir_block_index == -1 ) {
-		cout << "Error@FileSystem53.create(): no more empty block" << endl;
+		//cout << "Error@FileSystem53.create(): no more empty block" << endl;
 		return -1;
 	}
 	// update bytemap
@@ -602,7 +603,7 @@ int FileSystem53::open(string symbolic_file_name)
 {
 	//print_oft();
 	if ( symbolic_file_name.size() > 10 ) {
-		cout << "Error@FileSystem53.open(): filename size of boundary" << endl;
+		//cout << "Error@FileSystem53.open(): filename size of boundary" << endl;
 		return -1;
 	}
 
@@ -611,7 +612,7 @@ int FileSystem53::open(string symbolic_file_name)
 
 
 	if ( desc_index < 0 || desc_index > MAX_FILE_NO ) {
-		cout << "Error@FileSystem53.open(): descriptor index " << desc_index << " out of boundary" << endl;
+		//cout << "Error@FileSystem53.open(): descriptor index " << desc_index << " out of boundary" << endl;
 		return -1;
 	}
 

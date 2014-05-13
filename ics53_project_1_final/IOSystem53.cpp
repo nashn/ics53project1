@@ -19,7 +19,7 @@ using namespace std;
 IOSystem53::IOSystem53(int l, int b)
 {
 
-	cout << "Initializing IOSystem53..." << endl;
+	//cout << "Initializing IOSystem53..." << endl;
 	MAX_BLOCK_NUM = l;
 	MAX_BLOCK_SIZE = b;
 	// Dynamic allocate version
@@ -105,7 +105,7 @@ void IOSystem53::save()
 			}
 			savefile << "\n";
 		}
-		cout << "Save file successfully!" << endl;
+		//cout << "Save file successfully!" << endl;
 		savefile.close();
 	}
 	else { 
@@ -132,7 +132,7 @@ void IOSystem53::restore()
 			// for debug;
 			//cout << "\n";				
 		}
-		cout << "Restore file successfully!" << endl;
+		//cout << "Restore file successfully!" << endl;
 		savefile.close();
 	}
 

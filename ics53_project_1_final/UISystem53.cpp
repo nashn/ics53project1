@@ -75,7 +75,7 @@ int main(int argc, char const *argv[])
 	// using a parameter array instead
 	string parameter[4];
 
-	cout << "Initializing UISystem53..." << endl;
+	//cout << "Initializing UISystem53..." << endl;
 	print_info();
 	print_commands();
 	print_version_info();
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[])
 		if ( command == "q" || command == "quit" || command == "exit" ) 
 		{
 			filesystem->save();
-			cout << "All data is saved...\nSystem close" << endl; 
+			//cout << "All data is saved...\nSystem close" << endl; 
 			break; 
 		}
 		else if ( command == "hack" )
@@ -234,10 +234,12 @@ void create_command(string& name)
 {
 	//cout << "Filename: " << name << endl;
 	int res = filesystem->create(name);
-	if ( res == -1 )
-		cout << "Error@UISystem53.create_command(): no space in disk" << endl;
+	if ( res == -1 ) {
+		//cout << "Error@UISystem53.create_command(): no space in disk" << endl;
+		cout << "error" << endl;
+	}
 	else if ( res == -2 ) {
-		cout << "Error@UISystem53.create_command(): duplicate filename" << endl;
+		//cout << "Error@UISystem53.create_command(): duplicate filename" << endl;
 		cout << "error" << endl;
 	} else {
 		cout << "file " << name << " created" << endl;
@@ -248,8 +250,10 @@ void create_command(string& name)
 void delete_command(string& name)
 {
 	int res = filesystem->deleteFile(name);
-	if ( res == -1 )
-		cout << "Error@UISystem53.delete_command(): No such file" << endl;
+	if ( res == -1 ) {
+		//cout << "Error@UISystem53.delete_command(): No such file" << endl;
+		cout << "error" << endl;
+	}
 	else {
 		cout << "file " << name << " deleted" << endl;
 		//cout << "Delete file successfully!" << endl;
@@ -259,10 +263,14 @@ void delete_command(string& name)
 void open_command(string& name)
 {
 	int res = filesystem->open(name);
-	if ( res == -1 )
-		cout << "Error@UISystem53.open_command(): file not found" << endl;
-	else if ( res == -2 )
-		cout << "Error@UISystem53.open_command(): no empty entry" << endl;
+	if ( res == -1 ) {
+		//cout << "Error@UISystem53.open_command(): file not found" << endl;
+		cout << "error" << endl;
+	}
+	else if ( res == -2 ) {
+		//cout << "Error@UISystem53.open_command(): no empty entry" << endl;
+		cout << "error" << endl;
+	}
 	else {
 		cout << "file " << name << " opened, index = " << res << endl;
 		//cout << "Open file successfully!" << endl;
@@ -271,7 +279,7 @@ void open_command(string& name)
 // problem herer
 void close_command(int index)
 {
-	cout << "index = " << index << endl;
+	//cout << "index = " << index << endl;
 	filesystem->close(index);
 	cout << "file with index " << index << " closed" << endl;
 }
@@ -281,10 +289,14 @@ void read_command(int index, int count)
 	char temp[count];
 	int res = filesystem->read(index, temp, count);
 
-	if ( res == -1 )
-		cout << "Error@UISystem53.read_command(): can't get proper file descriptor" << endl;
-	else if ( res == -2 )
-		cout << "Error@UISystem53.read_command(): current position==file size" << endl;
+	if ( res == -1 ) {
+		//cout << "Error@UISystem53.read_command(): can't get proper file descriptor" << endl;
+		cout << "error" << endl;
+	}
+	else if ( res == -2 ) {
+		//cout << "Error@UISystem53.read_command(): current position==file size" << endl;
+		cout << "error" << endl;
+	}
 	else {
 		//cout << "read data successfully!" << endl;
 		cout << res << " bytes read: ";
@@ -300,10 +312,14 @@ void read_command(int index, int count)
 void write_command(int num, char symbol, int count)
 {
 	int res = filesystem->write(num, symbol, count);
-	if ( res == -1 )
-		cout << "Error@UISystem53.write_command(): File hasn't been open" << endl;
-	else if ( res == -2 )
-		cout << "Error@UISystem53.write_command(): Maximum file size reached (not implemented.)" << endl;
+	if ( res == -1 ) {
+		//cout << "Error@UISystem53.write_command(): File hasn't been open" << endl;
+		cout << "error" << endl;
+	}
+	else if ( res == -2 ) {
+		//cout << "Error@UISystem53.write_command(): Maximum file size reached (not implemented.)" << endl;
+		cout << "error" << endl;
+	}
 	else {
 		//cout << "Write file successfully!" << endl;
 		cout << res << " bytes written " << endl;
@@ -315,8 +331,10 @@ void seek_command(int index, int position)
 {
 	int res = filesystem->lseek(index, position);
 
-	if ( res == -1 )
-		cout << "Error@UISystem53.seek_command(): No such file" << endl;
+	if ( res == -1 ) {
+		//cout << "Error@UISystem53.seek_command(): No such file" << endl;
+		cout << "error" << endl;
+	}
 	else if ( res == 0 ) {
 		//cout << "Seek file successfully!" << endl;
 		cout << "current position is " << position << endl;
