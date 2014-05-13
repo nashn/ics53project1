@@ -3,11 +3,13 @@
 // Authors     : She Nie
 //				 Yuhong Li
 //				 Qixiang Zhang
-// Version     : Ver 1.2
+// Version     : Ver 1.3
 // Copyright   : Team project for ICS53, all rights reserved.
 // Description : First Project - Part 1
 // History     : 04/19/2014: Finish the 1.0 Version
 //               04/22/2014: Upgrade to 1.2 Version
+//				 05/12/2014: Fix small bugs in save() and restore()
+//
 //============================================================================
 
 #include "IOSystem53.hpp"
@@ -25,7 +27,7 @@ IOSystem53::IOSystem53(int l, int b)
 	for (int i = 0; i < b; i++) {
 		ldisk[i] = new char[b];
 		for (int j = 0; j < b; j++) {
-			ldisk[i][j] = '0';
+			ldisk[i][j] = 0;
 		}
 	}
 
@@ -82,6 +84,7 @@ void IOSystem53::write_block(int i, char* p)
 	for (int s = 0 ; s < MAX_BLOCK_SIZE; s++) {
 		//if ( p[s] == '-' && p[s+1] == '1' )
 		//{ break; }
+		//cout << p[s] << endl;
 		cursor[s] = p[s];
 	}
 }
@@ -97,7 +100,8 @@ void IOSystem53::save()
 		{
 			for (int j = 0; j < MAX_BLOCK_SIZE; ++j)
 			{
-				savefile << ldisk[i][j] << " ";
+				// for debugging, casting to int type here
+				savefile << ldisk[i][j] << "";
 			}
 			savefile << "\n";
 		}
@@ -115,15 +119,15 @@ void IOSystem53::restore()
 {
 	// require some file operations
 	string line;
-	ifstream savefile ("IOSystem53.txt");
+	ifstream savefile ("IOSystem53disk.txt");
 	if (savefile.is_open())
 	{
 		for (int i = 0; i < MAX_BLOCK_NUM; ++i)
 		{
-			getline (savefile,line); 
+			getline(savefile,line); 
 			for (int j = 0; j < line.size(); ++j) {
-				ldisk[i][j] = line[j];
-				//cout << ldisk[i][j];
+				ldisk[i][j] = (int)line[j];
+				//cout << "(" << i << ", " << j << ") = " << (int)ldisk[i][j] << endl;
 			}
 			// for debug;
 			//cout << "\n";				

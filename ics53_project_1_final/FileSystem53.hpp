@@ -53,7 +53,7 @@ class FileSystem53 {
 	const static int MAX_FILE_NO = 14;        // Maximum number of files which can be stored by this file system.
 	const static int MAX_BLOCK_NO = 64;       // Maximum number of blocks which can be supported by this file system.
 	const static int MAX_BLOCK_NO_DIV8 = MAX_BLOCK_NO/8;
-	const static int MAX_FILE_NAME_LEN = 32;  // Maximum size of file name in byte.
+	const static int MAX_FILE_NAME_LEN = 10;  // Maximum size of file name in byte.
 	const static int MAX_OPEN_FILE = 3;       // Maximum number of files to open at the same time.
 	const static int FILEIO_BUFFER_SIZE = 64; // Size of file io bufer
 	const static int _EOF= -1;       // End-of-File
@@ -131,6 +131,10 @@ public:
 
 	// Disk dump, from block 'start' to 'start+size-1'.
 	void diskdump(int start, int size);
+
+	// helper functions for debugging
+	void print_desc_table();
+	void print_oft();
 };
 
 #endif

@@ -3,11 +3,14 @@
 // Authors     : She Nie
 //				 Yuhong Li
 //				 Qixiang Zhang
-// Version     : Ver 1.0
+// Version     : Ver 1.78
 // Copyright   : Team project for ICS53, all rights reserved.
 // Description : First Project - Part 2
 // History     : 04/22/2014: Start working
-//				 05/05/2014: Ver 1.0 finished, start debugging	
+//				 05/05/2014: Ver 1.0 finished, start debugging
+//				 05/11/2014: Ver 1.35 finsihed, continue debugging
+//				 05/11/2014: Ver 1.55 finsihed, continue debugging
+//				 05/12/2014: Ver 1.78 finsihed, all testcases pass, clean up for submission
 //
 //============================================================================
 
@@ -50,7 +53,7 @@ void FileSystem53::OpenFileTable()
 	oft = new char*[MAX_OPEN_FILE+1];
 	
 	// each entry will have a length of header_size + max block size
-	for (int i = 0; i < MAX_OPEN_FILE; i++)
+	for (int i = 0; i < MAX_OPEN_FILE+1; i++)
 	{
 		oft[i] = new char[OFT_ENTRY_SIZE];
 		for (int j = 0; j < OFT_ENTRY_SIZE; j++)
@@ -58,6 +61,7 @@ void FileSystem53::OpenFileTable()
 			oft[i][j] = 0;
 		}
 	}
+
 
 }
 
@@ -78,9 +82,9 @@ int FileSystem53::find_oft()
 //Deallocate
 void FileSystem53::deallocate_oft(int index)
 {
-	if ( index == 0 )
-		cout << "Error@FileSystem53.deallocate_oft(): cannot deallocate directory file" << endl;
-	if ( index < 0 || index > MAX_OPEN_FILE + 1 )
+	//if ( index == 0 )
+	//	cout << "Error@FileSystem53.deallocate_oft(): cannot deallocate directory file" << endl;
+	if ( index < 0 || index > MAX_OPEN_FILE )
 		cout << "Error@FileSystem53.deallocate_oft(): Invalid oft index" << endl;
 	else 
 	{
@@ -104,21 +108,16 @@ void FileSystem53::deallocate_oft(int index)
 void FileSystem53::format()
 {
 	// intialize the bytemap at position 0
-    /*   Note that since the first 7 blocks of ldisk are preserved
-     *     to store descriptors, names, etc., so that the
-     *     desc_table[0][0]~desc_table[0][6] are set to 1.
-     */
 	for (int i = 0; i < B; i++)
 	{
-        if ( i < 7 )
-            desc_table[0][i] = 1;
-        else
-            desc_table[0][i] = 0;
+		if ( i < K )
+			desc_table[0][i] = 1;
+		else
+			desc_table[0][i] = 0;
 	}
 
 
 	// initialize first 14 blocks with zeros
-    //   a.k.a. initializing desc_table[0][1]~desc_table[0][14].
 	for (int i = 1; i < MAX_FILE_NO+1; i++)
 	{
 		for (int j = 0; j < DESCR_SIZE; j++)
@@ -132,12 +131,24 @@ void FileSystem53::format()
 	for (int i = 0; i < DESCR_SIZE; i++)
 	{ directory_desc[i] = 0; }
 
+	/*
+	// find an empty block for directory file
+	int block_index = find_empty_block();
+	if ( block_index == -1 ) {
+		cout << "Error@FileSystem53.format(): no more empty block" << endl;
+	}
+	// update bytemap
+	desc_table[0][block_index] = 1;
+
+	directory_desc[1] = block_index;
+	*/
+
 	// write it to position 1
 	write_descriptor(1, directory_desc);
 
 	// load directory file to oft[0]
 	// oft availiable flag
-	oft[0][0] = 1;                 // << may cause problem
+	oft[0][0] = 1;
 	for (int i = 0; i < DESCR_SIZE; ++i)
 	{
 		oft[0][i+1] = directory_desc[i];
@@ -180,7 +191,8 @@ char* FileSystem53::read_descriptor(int no)
 
 /* Clear descriptor
  *   1. Clear descriptor entry
- *   2. Clear bytemap
+ *   2. Clear bitmap
+ *   3. Write back to disk
  * Parameter(s):
  *    no: Descriptor number to clear
  * Return:
@@ -209,7 +221,7 @@ void FileSystem53::clear_descriptor(int no)
 
 /* Write descriptor
  *   1. Update descriptor entry
- *   2. Mark bytemap
+ *   2. Mark bitmap
  *   3. Write back to disk
  * Parameter(s):
  *    no: Descriptor number to write
@@ -251,7 +263,7 @@ int FileSystem53::find_empty_descriptor()
 
 
 /* Search for an unoccupied block.
- *   This returns the first unoccupied block in bytemap field.
+ *   This returns the first unoccupied block in bitmap field.
  *   Return value -1 means all blocks are occupied.
  * Parameter(s):
  *    none
@@ -284,15 +296,16 @@ int FileSystem53::find_empty_block()
  */
 int FileSystem53::fgetc(int index)
 {
-	if ( index < 0 || index > MAX_OPEN_FILE ) {
+	if ( index < 0 || index > MAX_FILE_NO ) {
 		cout << "Error@FileSystem53.fgetc(): Index out of boundary" << endl;
 		return _EOF;
 	}
 
 	// get the current cursor of the file buffer
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
+	//cout << "cursor = " << cursor << endl;
 	int length = oft[index][1];
-	if ( cursor < 6 || cursor > (length + 5) || cursor >= OFT_ENTRY_SIZE )
+	if ( cursor > (length+6) || cursor < 6 || cursor >= OFT_ENTRY_SIZE )
 		return _EOF;
 
 	// increase the cursor
@@ -316,14 +329,14 @@ int FileSystem53::fgetc(int index)
 int FileSystem53::fputc(int c, int index)
 {
 	// the int c should be the ASCII code of the character c
-	if ( index < 0 || index > MAX_OPEN_FILE ) {
+	if ( index < 0 || index > MAX_FILE_NO+1 ) {
 		cout << "Error@FileSystem53.fputc(): Index out of boundary" << endl;
 		return -2;
 	}
 
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor < 6 || cursor > (length + 5) || cursor >= OFT_ENTRY_SIZE )
+	if ( cursor > (length+6) || cursor < 6 || cursor > OFT_ENTRY_SIZE )
 		return -2;
 
 	oft[index][cursor] = c;
@@ -352,7 +365,7 @@ int FileSystem53::fputc(int c, int index)
 bool FileSystem53::feof(int index)
 {
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
-	for (int i = cursor; i < oft[index][1]; i++) {     // checkhere: logic
+	for (int i = cursor; i < oft[index][1]; i++) {
 		if ( oft[index][i] == _EOF )
 			return true;
 	}
@@ -371,32 +384,45 @@ bool FileSystem53::feof(int index)
  */
 int FileSystem53::search_dir(int index, string symbolic_file_name)
 {
-	if ( index < 0 || index > MAX_OPEN_FILE ) {
+	if ( index < 0 || index > MAX_FILE_NO ) {
 		cout << "Error@FileSystem53.search_dir(): Index out of boundary" << endl;
 		return -1;
 	}
 
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor < 6 || cursor > (length + 5) || cursor >= OFT_ENTRY_SIZE )
+
+	if ( cursor > length+6 || cursor < 6 || cursor >= OFT_ENTRY_SIZE )
 		return -1;
 
 	int res = -1;
 
-	while ( cursor < (length + 5))
+	while ( cursor < (length+6) )
 	{
 		// filename's length
-		cursor+=2;
-		int nlength = oft[index][cursor];
-		char buffer[nlength];
+		int desc_index = oft[index][cursor];
 		cursor++;
+		int nlength = oft[index][cursor];
+		//char buffer[nlength];
+		cursor++;
+		string name_buffer = "";
 		for (int i = 0; i < nlength; i++)
 		{
-			buffer[i] = oft[index][cursor+i];
+			name_buffer += oft[index][cursor+i];
+			//buffer[i] = oft[index][cursor+i];
 		}
+
+		// for debugging
+		/*
+		cout << "symbolic_file_name = " << symbolic_file_name << " size = " << symbolic_file_name.size() << endl;
+		cout << "name_buffer = " << name_buffer << " size = " << name_buffer.size() << endl;
+		cout << symbolic_file_name.compare(name_buffer) << endl;
+		cout << "desc_index = " << desc_index << endl;
+		print_oft();
+		*/
 		
-		if ( symbolic_file_name.compare(buffer) == 0 )
-			return cursor;
+		if ( symbolic_file_name.compare(name_buffer) == 0 )
+			return desc_index;
 
 		cursor += nlength-1;	
 	}
@@ -416,10 +442,10 @@ int FileSystem53::search_dir(int index, string symbolic_file_name)
  */
 void FileSystem53::delete_dir(int index, int start_pos, int len)
 {
-	if ( index < 0 || index > MAX_FILE_NO+1 ) 
+	if ( index < 0 || index > MAX_OPEN_FILE ) 
 		cout << "Error@FileSystem53.delete_dir(): Index out of boundary" << endl;
 	
-	if ( start_pos < 6 || start_pos > (len+5) || start_pos >= OFT_ENTRY_SIZE )
+	if ( start_pos > len+6 || start_pos < 6 || start_pos >= OFT_ENTRY_SIZE )
 		cout << "Error@FileSystem53.delete_dir(): Position out of boundary" << endl;
 
 	for (int i = start_pos; i < start_pos + len; i++)
@@ -467,29 +493,48 @@ int FileSystem53::create(string symbolic_file_name)
 		return -1;
 	}
 
-	// the following part has problem, need to be work out
-	// get new empty block to store the content
-	//if ( )
+	// get new empty block for directory to store the content if needed..
+	int dir_block_index = find_empty_block();
+	if ( dir_block_index == -1 ) {
+		cout << "Error@FileSystem53.create(): no more empty block" << endl;
+		return -1;
+	}
+	// update bytemap
+	desc_table[0][dir_block_index] = 1;
 
+	// set the first block with the found index;
+	int current_block = (filename_length + oft[0][1]) / 64;
+	oft[0][2+current_block] = dir_block_index;
+	
 	// write filename to directory file in oft
-	int start_pos = oft[0][OFT_CURRENT_POSITION_INDEX];
+	// handling multiply filenames
+	// create new file name entry
+	int start_pos = 0;
+	int filename_buffer_length = 2+filename_length;
+	char filename_buffer[filename_buffer_length];
+	filename_buffer[0] = desc_index;
+	filename_buffer[1] = filename_length;
 	for (int i = 0; i < filename_length; i++)
 	{
-		oft[0][start_pos] = symbolic_file_name[i];
-		start_pos++;
+		filename_buffer[i+2] = symbolic_file_name[i];
 	}
-	oft[0][OFT_CURRENT_POSITION_INDEX] = start_pos;
+
+	// find empty space in directory file to write the entry
+	for (int i = OFT_CURRENT_POSITION_INDEX; i < OFT_ENTRY_SIZE; i++)
+	{
+		while ( oft[0][i] == 0 && start_pos < filename_buffer_length ) {
+			oft[0][i] = filename_buffer[start_pos];
+			i++;
+			start_pos++;
+		}
+	}
+
+
+
+	//oft[0][OFT_CURRENT_POSITION_INDEX] = start_pos;
 
 	// update descriptor in oft
-	oft[0][1] += start_pos;
-
-
-	////////////////////////////////////
-	// problem:
-	// 	a block with unfully used space
-	// len = 56 or len = 67
-	// (len % 64 + filename_length < 64)?
-	////////////////////////////////////
+	oft[0][1] += filename_length+2;
 
 
 	// write descriptior to desc_table
@@ -498,7 +543,7 @@ int FileSystem53::create(string symbolic_file_name)
 	{
 		desc_buffer[i] = oft[0][i+1];
 	}
-
+	
 	write_descriptor(1, desc_buffer);
 
 	return 0;
@@ -524,7 +569,7 @@ int FileSystem53::open_desc(int desc_no)
 		return -1;
 
 	// set oft position to be used
-	oft[oft_index][0] = 1;
+	oft[oft_index][0] = desc_no;
 
 	// copy descriptor from desc_table to oft
 	for (int i = 0; i < DESCR_SIZE; i++)
@@ -555,6 +600,7 @@ int FileSystem53::open_desc(int desc_no)
 		// 6. Return entry number
 int FileSystem53::open(string symbolic_file_name)
 {
+	//print_oft();
 	if ( symbolic_file_name.size() > 10 ) {
 		cout << "Error@FileSystem53.open(): filename size of boundary" << endl;
 		return -1;
@@ -563,32 +609,59 @@ int FileSystem53::open(string symbolic_file_name)
 	// search the direcotry to find the filename and its corresponding index
 	int desc_index = search_dir(0, symbolic_file_name);
 
-	if ( desc_index < 0 || desc_index > MAX_FILE_NO+1 ) {
+
+	if ( desc_index < 0 || desc_index > MAX_FILE_NO ) {
 		cout << "Error@FileSystem53.open(): descriptor index " << desc_index << " out of boundary" << endl;
 		return -1;
 	}
 
 	int oft_index = open_desc(desc_index);
+	oft[oft_index][0] = desc_index;
+	oft[oft_index][OFT_CURRENT_POSITION_INDEX] = 6;
+	//cout << "desc_index = " << desc_index << endl;
+	//print_oft();
+	
+	// problem here for updating length and cursors;
+	int cursor = oft[oft_index][OFT_CURRENT_POSITION_INDEX];
+
 
 	char block_buffer[B];
+	int block_count = 0;
+	int next_pos = 0;
 	while ( oft[oft_index][1] > 0 )
 	{
-		for (int i = 1; i < DESCR_SIZE; ++i)
+		if ( next_pos > oft[oft_index][1] )
+			break;
+		//oft[oft_index][1] = 0;
+		for (int i = 1; i < DESCR_SIZE; i++)
 		{
 			int block_index = oft[oft_index][i+1];
+			//cout << "block_index = " << block_index << endl;
 			if ( block_index != 0 )
 			{
 				iosystem->read_block(block_index, block_buffer);
+				//print_oft();
 				// write to oft buffer
-				for (int i = 0; i < B; ++i)
+				for (int j = 0; j < B; j++)
 				{
-					int tmp = fputc((int)block_buffer[i], 0); // complicated?
-					if ( tmp == -1 )
+					next_pos = OFT_CURRENT_POSITION_INDEX + j + 1 + block_count * 64;
+					oft[oft_index][next_pos] = (int)block_buffer[j];
+					if ( (int)block_buffer[j] == -1 )
 						break;
+					/*
+					//cout << "block_buffer[" << i << "] = " << (int)block_buffer[i] << endl;
+					int tmp = fputc((int)block_buffer[i], oft_index);
+					if ( tmp == -2 )
+						break;
+					*/
 				}
+				block_count++;
+				//print_oft();
 			}
 		}
 	}
+
+	//print_oft();
 
 	return oft_index;
 }
@@ -634,15 +707,22 @@ int FileSystem53::read(int index, char* mem_area, int count)
 
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor < 6 || cursor > (length+5) || cursor >= OFT_ENTRY_SIZE ) {
+	/*
+	cout << "cursor = " << cursor << endl;
+	cout << "length = " << length << endl;
+	print_oft();
+	*/
+	if ( cursor > (length+6) || cursor < 6 || cursor > OFT_ENTRY_SIZE ) {
 		cout << "Error@FileSystem53.read(): Cursor out of boundary" << endl;
 		return -2;
 	}
 
+	//mem_area = new char[count];
 	int read_count = 0;
 	for (; read_count < count; read_count++)
 	{
 		int tmp = fgetc(index);
+		//cout << (char)tmp << endl;
 		if ( tmp == -1 )
 		{
 			break;
@@ -679,14 +759,27 @@ int FileSystem53::write(int index, char value, int count)
 		return -1;
 	}
 
+	// set the first block with the found index;
+	int file_block_index = find_empty_block();
+
+	if ( file_block_index == -1 ) {
+		cout << "Error@FileSystem53.create(): no more empty block" << endl;
+		return -1;
+	}
+	// update bytemap
+	desc_table[0][file_block_index] = 1;
+	int current_block = (count + oft[index][1]) / 64;
+	oft[index][2+current_block] = file_block_index;
+
 	// previous design
 	int cursor = oft[index][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[index][1];
-	if ( cursor < 6 || cursor > (length+5) || cursor >= OFT_ENTRY_SIZE ) {
+	if ( cursor > (length+6) || cursor < 6 || cursor > OFT_ENTRY_SIZE ) {
 		cout << "Error@FileSystem53.write(): Cursor out of boundary" << endl;
 		return -2;
 	}
 	///////////////////////////////////////////
+	
 
 	int write_count = 0;
 	for (; write_count < count; write_count++)
@@ -704,6 +797,13 @@ int FileSystem53::write(int index, char value, int count)
 			return -1;
 		}
 	}
+
+	char buffer[DESCR_SIZE];
+	for (int i = 0; i < DESCR_SIZE; ++i)
+	{
+		buffer[i] = oft[index][i+1];
+	}
+	write_descriptor(oft[index][0], buffer);
 
 	return write_count;
 }
@@ -729,7 +829,7 @@ int FileSystem53::lseek(int index, int pos)
 		return -1;
 	}
 
-	oft[index][OFT_CURRENT_POSITION_INDEX] = pos;
+	oft[index][OFT_CURRENT_POSITION_INDEX] = pos+6;
 
 	return 0;
 }
@@ -744,7 +844,7 @@ int FileSystem53::lseek(int index, int pos)
 void FileSystem53::close(int index)
 {
 	// find the index and store it to the disk
-	if ( index < 0 || index > MAX_FILE_NO+1 ) {
+	if ( index < 0 || index > MAX_OPEN_FILE ) {
 		cout << "Error@FileSystem53.close(): Index out of boundary" << endl;
 		return;
 	}
@@ -754,23 +854,36 @@ void FileSystem53::close(int index)
 		return;
 	}
 
+	// set the cursor back to start position
+	lseek(index, 0);
+
+	// create write buffer and start writing to IO layer
 	char buffer[B];
 	for (int i = 2; i <= DESCR_SIZE; ++i)
 	{
+		int block_index = (int)oft[index][i];
+		if ( block_index == 0 )
+			break;
+
+		// fill in the buffer
 		for (int j = 0; j < B; j++)
 		{
 			buffer[j] = fgetc(index);
+			//cout << buffer[j] << " ";
 		}
 
-		iosystem->write_block(oft[index][i], buffer);
+		iosystem->write_block(block_index, buffer);
 
+		// clean the buffer
 		for (int j = 0; j < B; j++)
 		{
 			buffer[j] = 0;
 		}
 	}
-	
-
+	// clean up oft[index]
+	deallocate_oft(index);
+	// save the disk
+	iosystem->save();
 }
 
 
@@ -796,11 +909,47 @@ int FileSystem53::deleteFile(string fileName)
 	{
 		if ( oft[i][0] != 0 && oft[i][0] == desc_index )
 		{
-			return 0;	
+			close(i);
 		}
 	}
 
-	return -1;
+	// find the descriptor and mark the bytemap
+	for (int i = 1; i < DESCR_SIZE; i++)
+	{
+		int block_index = desc_table[desc_index][i];
+		if ( block_index != 0 && block_index > 6 )
+		{
+			desc_table[0][block_index] = 0;
+		}
+	}
+	clear_descriptor(desc_index);
+
+	// delecte the filename and related information from directory
+	int cursor = oft[0][OFT_CURRENT_POSITION_INDEX];
+	int start_pos = cursor;
+	int length = oft[0][1];
+	while ( cursor < (length+6) )
+	{
+		// filename's length
+		int desc_index = oft[0][cursor];
+		cursor++;
+		int nlength = oft[0][cursor];
+		//char buffer[nlength];
+		cursor++;
+		string name_buffer = "";
+		for (int i = 0; i < nlength; i++)
+		{
+			name_buffer += oft[0][cursor+i];
+			//buffer[i] = oft[index][cursor+i];
+		}
+		
+		if ( fileName.compare(name_buffer) == 0 )
+			delete_dir(0, start_pos, nlength);
+
+		cursor += nlength-1;	
+	}
+
+	return 0;
 }
 
 
@@ -815,34 +964,41 @@ int FileSystem53::deleteFile(string fileName)
  */
 void FileSystem53::directory()
 {
-	
+	//print_oft();
 	int cursor = oft[0][OFT_CURRENT_POSITION_INDEX];
 	int length = oft[0][1];
 
-	if ( cursor > length || cursor < 6 || cursor > OFT_ENTRY_SIZE ) {
+	if ( cursor > (length+6) || cursor < 6 || cursor >= OFT_ENTRY_SIZE ) {
 		cout << "Error@FileSystem53.directory(): Cursor out of boundary" << endl;
 		return;
 	}
-	
 
-	while ( cursor < length )
+	//cout << "cursor = " << cursor << endl;
+	
+	while ( cursor < (length+6) )
 	{
-		int desc_index = cursor++;
+		int desc_index = oft[0][cursor++];
+		//cout << "  cursor = " << cursor << endl;
+		//cout << "  desc_index = " << desc_index << endl;
 		if ( desc_index != 0 )
 		{
 			int file_length = desc_table[desc_index][0];
 			int filename_length = cursor++;
 
+			//cout << "   cursor = " << cursor << endl;
+			//cout << "   file_length = " << file_length << endl;
+			//cout << "   filename_length = " << filename_length << endl;
+		
 			char name_buffer[filename_length];
 			for (int i = 0; i < filename_length; i++)
 			{
 				name_buffer[i] = oft[0][cursor+i];
 			}
-			cursor += filename_length;
+			cursor += (filename_length-1);
 			cout << name_buffer << " " << file_length << " bytes" << endl;
 		}
 
-		cursor++;
+		cursor--;
 	}
 
 }
@@ -860,29 +1016,107 @@ void FileSystem53::restore()
 
 	// after restore
 	// load all the result from the disk to the buffer
+	// reload bytemap and desc_table
+	char bytemap_buffer[B];
+	char desc_buffer[B];
+
+
+	iosystem->read_block(0, bytemap_buffer);
+	iosystem->read_block(1, desc_buffer);
+
+	for (int i = 0; i < B; i++)
+	{
+		//cout << "buffer[i] = " << i << " " << (int)bytemap_buffer[i] << endl;
+		desc_table[0][i] = bytemap_buffer[i];
+		//cout << "desc_buffer[" << i << "] = " << (int)desc_buffer[i] << endl;
+	}
+
+
+	int start_pos = 0;
+	for (int i = 1; i < MAX_FILE_NO+1; i++)
+	{
+		for (int j = 0; j < DESCR_SIZE; j++)
+		{
+			//desc_buffer_part[j] = desc_buffer[start_pos++];
+			desc_table[i][j] = desc_buffer[start_pos++];
+			//cout << "desc_buffer[" << start_pos << "] = " << (int)desc_buffer[i] << endl;
+		}
+		//cout << endl;
+
+	}
+
+	// load directory to OFT
+	oft[0][0] = 1;
+	char* dir_buffer_part = read_descriptor(1);
+	for (int i = 0; i < DESCR_SIZE; i++)
+	{
+		oft[0][i+1] = dir_buffer_part[i];
+		//cout << "dir_buffer[" << i << "] = " << (int)oft[0][i+1] << endl;
+	}
+	oft[0][OFT_CURRENT_POSITION_INDEX] = 6;
+
+
+	char filename_buffer[B];
+	start_pos = oft[0][OFT_CURRENT_POSITION_INDEX];
+	for (int i = 1; i < DESCR_SIZE; i++)
+	{
+		int block_index = oft[0][i+1];
+		if ( block_index == 0 )
+		{
+			break;
+		}
+		iosystem->read_block(block_index, filename_buffer);
+		
+		for (int j = 0; j < B; j++)
+		{
+			if ( filename_buffer[j] == 0 )
+				break;
+			oft[0][start_pos++] = filename_buffer[j];
+		}
+	}
+
+	//print_desc_table();
+	//print_oft();
+
 }
 
 // Saves the array to a file as a disk image.
 void FileSystem53::save()
 {
-	// before saving to file
+	// before saving to file, close all files
 	// write all current buffer to the disk
-	/*
-	for (int i = 1; i < MAX_OPEN_FILE+1; i++)
+	for (int i = 0; i <= MAX_OPEN_FILE; i++)
 	{
 		// close() will write all the content to disk
-		close(i);
+		if ( oft[i][1] != 0 )
+			close(i);
 	}
-	*/
-
+	
 	// writing all descriptior to dist
-	char buffer[B];
-	for (int i = 1; i < MAX_FILE_NO+1; i++)
+	char* bytemap_buffer;
+	bytemap_buffer = desc_table[0];
+	iosystem->write_block(0, bytemap_buffer);
+	
+	char desc_buffer[B];
+	for (int i = 0; i < B; i++)
 	{
-		strcat(buffer, desc_table[i]);
+		desc_buffer[i] = 0;
 	}
-	//cout << buffer << endl;
-	iosystem->write_block(1, buffer);
+
+	int desc_index = 1;
+	for (int i = 0; i < B; i++)
+	{
+		if ( desc_index > 14 )
+			break;
+		for (int j = 0; j < DESCR_SIZE; j++)
+		{
+			desc_buffer[i++] = (int)desc_table[desc_index][j];
+		}
+		i--;
+		desc_index++;
+	}
+
+	iosystem->write_block(1, desc_buffer);
 
 	iosystem->save();
 }
@@ -901,3 +1135,47 @@ void FileSystem53::diskdump(int start, int size)
 		iosystem->write_block(i, clean);
 	}
 }
+
+
+
+// helper functions for debugging
+void FileSystem53::print_desc_table()
+{
+	cout << "Desc_table contains:" << endl;
+	// print out bytemap
+	cout << "  Desc_table[0] = ";
+	for (int i = 0; i < B; i++)
+	{
+		cout << (int)desc_table[0][i] << " ";
+	}
+	cout << endl;
+
+	// print out other descriptor
+	for (int i = 1; i < MAX_FILE_NO+1; i++)
+	{
+		cout << "  Desc_table[" << i << "] = ";
+		for (int j = 0; j < DESCR_SIZE; j++)
+		{
+			cout << (int)desc_table[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
+
+void FileSystem53::print_oft()
+{
+	cout << "OFT contains:" << endl;
+
+	for (int i = 0; i < MAX_OPEN_FILE+1; i++)
+	{
+		cout << "  OFT[" << i << "] = ";
+		for (int j = 0; j < 70; j++)
+		{
+			cout << (int)oft[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
+
