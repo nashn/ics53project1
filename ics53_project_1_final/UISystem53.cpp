@@ -177,7 +177,7 @@ int main(int argc, char const *argv[])
 			save_command();
 		}
 		else {
-			cout << "Error@UISystem.mian(): Unsupported command" << endl;
+			cout << "Error@UISystem.main(): Unsupported command" << endl;
 		}
 	}
 
