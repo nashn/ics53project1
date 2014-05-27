@@ -115,11 +115,11 @@ void* OneVehicle(void* c)
 
 	//cout << "id = " << id << ", direc = " << direc << endl;
 	ArriveBridge(id, direc);
-	cout << "  ArriveBridge done" << endl;
+	//cout << "  ArriveBridge done" << endl;
 	CrossBridge(id, direc);
-	cout << "  CrossBridge done" << endl;
+	//cout << "  CrossBridge done" << endl;
 	ExitBridge(id, direc);
-	cout << "  ExitBridge done" << endl;
+	//cout << "  ExitBridge done" << endl;
 
 	return 0;
 }
@@ -142,8 +142,8 @@ void ArriveBridge(int id, int direc)
 		pthread_mutex_lock( &count_mutex );
 		empty_count--;
 		cout << "Car " << id << " arrives at traveling direction " << direc << endl;
-		cout << "   empty_count = " << empty_count << endl;
-		cout << "   fill_count = " << fill_count << endl;
+		//cout << "   empty_count = " << empty_count << endl;
+		//cout << "   fill_count = " << fill_count << endl;
 
 		pthread_mutex_unlock( &count_mutex );
 
