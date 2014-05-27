@@ -1,5 +1,5 @@
 default:
-	g++ -pthread main.cpp -o run
+	g++ main.cpp utility.cpp -o run
 
 clean:
 	rm -rf *.o
