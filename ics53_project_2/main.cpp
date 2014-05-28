@@ -23,6 +23,7 @@ pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t condition_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition_cond = PTHREAD_COND_INITIALIZER;
 
+std::mutex my_mute;
 
 struct Car
 {
@@ -134,14 +135,18 @@ void ArriveBridge(int id, int direc)
 		while (  empty_count < 0 || empty_count > 3) {
 			//cout << "  get into loop " << endl;
 			pthread_cond_wait( &condition_cond, &condition_mutex );
+			my_mute.lock();
 			cout << "Car " << id << " waits to travel in direction " << direc << endl;
+			my_mute.unlock();
 		}
 
 		pthread_mutex_unlock( &condition_mutex );
 		
 		pthread_mutex_lock( &count_mutex );
 		empty_count--;
+		my_mute.lock();
 		cout << "Car " << id << " arrives at traveling direction " << direc << endl;
+		my_mute.unlock();
 		//cout << "   empty_count = " << empty_count << endl;
 		//cout << "   fill_count = " << fill_count << endl;
 
@@ -158,7 +163,9 @@ void ArriveBridge(int id, int direc)
 
 void CrossBridge(int id, int direc)
 {
+	my_mute.lock();
 	cout << "Car " << id << " crossing bridge in direction " << direc << endl;
+	my_mute.unlock();
 }
 
 
@@ -177,7 +184,9 @@ void ExitBridge(int id, int direc)
 		pthread_mutex_lock( &count_mutex );
 		empty_count++;
 		fill_count++;
+		my_mute.lock();
 		cout << "Car " << id << " exits at traveling direction " << direc << endl;
+		my_mute.unlock();
 		//cout << "   empty_count = " << empty_count << endl;
 		//cout << "   fill_count = " << fill_count << endl;
 
